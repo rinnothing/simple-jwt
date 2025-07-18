@@ -1,0 +1,100 @@
+openapi: 3.0.0
+info:
+  title: Simple JWT Auth Server
+  version: v1
+  
+paths:
+  /auth/{guid}:
+    get:
+      summary: Issues a pair of access and refresh tokens for given guid
+      operationId: AuthorizeGUID
+      parameters:
+        - name: guid
+          in: path
+          description: GUID of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Successfully issued tokens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+  /refresh:
+    post:
+      summary: Update a pair of access and refresh tokens
+      operationId: RefreshTokens
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenPair'
+      responses:
+        '200':
+          description: Successfully authenticated and refreshed tokens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '401':
+          description: Authentication failed, user will be unauthorized
+  /get:
+    get:
+      summary: Get user GUID by the access token
+      operationId: GetGUID
+      parameters:
+        - name: access_token
+          in: header
+          description: User's access token
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully authenticated and got GUID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GUID'
+        '401':
+          description: Authentication failed
+  /unauthorize:
+    post:
+      summary: Unauthorize user by access token
+      operationId: Unauthorize
+      parameters:
+        - name: access_token
+          in: header
+          description: User's access token
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully unauthorized user
+        '401':
+          description: Authentication failed
+
+servers:
+  - url: /v1
+components:
+  schemas:
+    GUID:
+      type: string
+      description: A unique string representing a user (and given by them)
+    AccessToken:
+      type: string
+      description: A JWT Token consisting of three base 64 strings separated by dots
+    RefreshToken:
+      type: string
+      description: A base64 encoded string used for issuing new pair of tokens
+    TokenPair:
+      type: object
+      description: A pair of access and refresh tokens
+      properties:
+        access_token:
+          $ref: '#/components/schemas/AccessToken'
+        refresh_token:
+          $ref: '#/components/schemas/RefreshToken'
