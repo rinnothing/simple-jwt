@@ -7,6 +7,7 @@ import (
 	"github.com/rinnothing/simple-jwt/internal/api/schema"
 	"github.com/rinnothing/simple-jwt/internal/service/auth"
 	storage "github.com/rinnothing/simple-jwt/internal/service/secure_storage"
+
 	"go.uber.org/zap"
 )
 
@@ -18,13 +19,13 @@ type AuthAPI interface {
 }
 
 type APIImpl struct {
-	logger zap.Logger
+	logger *zap.Logger
 
 	auth    auth.AuthService
 	storage storage.StorageService
 }
 
-func NewAPI(logger zap.Logger, auth auth.AuthService, storage storage.StorageService) AuthAPI {
+func NewAPI(auth auth.AuthService, storage storage.StorageService, logger *zap.Logger) AuthAPI {
 	return &APIImpl{
 		logger:  logger,
 		auth:    auth,
@@ -40,7 +41,8 @@ func (a *APIImpl) AuthorizeGUID(e echo.Context, guid string) error {
 		return InternalError(e)
 	}
 
-	pair, err := a.auth.IssueTokens(ctx, string(uuid))
+	// TODO: don't forget to set e.IPExtractor to echo.ExtractIPDirect()
+	pair, err := a.auth.IssueTokens(ctx, string(uuid), e.Request().UserAgent(), e.RealIP())
 	if err != nil {
 		return InternalError(e)
 	}
@@ -80,7 +82,8 @@ func (a *APIImpl) RefreshTokens(e echo.Context) error {
 		return err
 	}
 
-	newPair, err := a.auth.RefreshTokens(ctx, pair)
+	// TODO: don't forget to set e.IPExtractor to echo.ExtractIPDirect()
+	newPair, err := a.auth.RefreshTokens(ctx, pair, e.Request().UserAgent(), e.RealIP())
 	if err != nil {
 		return Unauthorized(e)
 	}
@@ -105,8 +108,12 @@ func (a *APIImpl) Unauthorize(e echo.Context, params schema.UnauthorizeParams) e
 }
 
 func (a *APIImpl) tryAuthorize(e echo.Context, token schema.AccessToken) error {
-	if a.auth.HasAccess(e.Request().Context(), token) {
-		return nil
+	allow, err := a.auth.HasAccess(e.Request().Context(), token)
+	if err != nil {
+		return InternalError(e)
 	}
-	return e.NoContent(http.StatusUnauthorized)
+	if !allow {
+		return e.NoContent(http.StatusUnauthorized)
+	}
+	return nil
 }
