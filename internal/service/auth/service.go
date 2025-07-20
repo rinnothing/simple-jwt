@@ -26,9 +26,9 @@ type AuthRepo interface {
 	ReviveKeys(ctx context.Context) ([3]string, error)
 	StoreKeys(ctx context.Context, keys [3]string) error
 
-	PutRefresh(ctx context.Context, uuid string, refresh schema.RefreshToken, userAgent, IP string) (bool, error)
-	RemoveRefresh(ctx context.Context, uuid string, refresh schema.RefreshToken) error
+	PutRefresh(ctx context.Context, uuid string, oldRefresh, newRefresh schema.RefreshToken, userAgent, IP string) (bool, error)
 	FindRefresh(ctx context.Context, uuid string, refresh schema.RefreshToken) (bool, error)
+	Remove(ctx context.Context, uuid string) error
 }
 
 type ServiceImpl struct {
@@ -97,7 +97,7 @@ func (s *ServiceImpl) HasAccess(ctx context.Context, token schema.AccessToken) (
 func (s *ServiceImpl) IssueTokens(ctx context.Context, uuid string, userAgent, ip string) (schema.TokenPair, error) {
 	access, refresh := s.authTool.IssueTokens(uuid)
 
-	_, err := s.repo.PutRefresh(ctx, uuid, schema.RefreshToken(refresh), userAgent, ip)
+	_, err := s.repo.PutRefresh(ctx, uuid, "", schema.RefreshToken(refresh), userAgent, ip)
 	if err != nil {
 		return schema.TokenPair{}, fmt.Errorf("can't update refresh token in database: %w", err)
 	}
@@ -117,7 +117,7 @@ func (s *ServiceImpl) RefreshTokens(ctx context.Context, pair schema.TokenPair, 
 	}
 
 	access, refresh := s.authTool.IssueTokens(payload.UUID)
-	updated, err := s.repo.PutRefresh(ctx, payload.UUID, schema.RefreshToken(refresh), userAgent, ip)
+	updated, err := s.repo.PutRefresh(ctx, payload.UUID, *pair.RefreshToken, schema.RefreshToken(refresh), userAgent, ip)
 	if errors.Is(err, postgres.ErrWrongUserAgent) {
 		err = s.Unauthorize(ctx, *pair.AccessToken)
 
@@ -149,9 +149,7 @@ func (s *ServiceImpl) Unauthorize(ctx context.Context, token schema.AccessToken)
 		return fmt.Errorf("can't get uuid from access token: %w", err)
 	}
 
-	refresh := s.authTool.AccessToRefresh(jwt.AccessToken(token))
-
-	err = s.repo.RemoveRefresh(ctx, payload.UUID, schema.RefreshToken(refresh))
+	err = s.repo.Remove(ctx, payload.UUID)
 	if err != nil {
 		return fmt.Errorf("failed to remove refresh token from database: %w", err)
 	}
