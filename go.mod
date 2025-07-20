@@ -5,9 +5,11 @@ go 1.24.3
 tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen
 
 require (
+	github.com/jackc/pgx/v5 v5.7.5
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/oapi-codegen/runtime v1.1.2
 	go.uber.org/zap v1.27.0
+	resty.dev/v3 v3.0.0-beta.3
 )
 
 require (
@@ -17,6 +19,9 @@ require (
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/google/uuid v1.5.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -36,6 +41,7 @@ require (
 	golang.org/x/crypto v0.38.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/net v0.40.0 // indirect
+	golang.org/x/sync v0.14.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
