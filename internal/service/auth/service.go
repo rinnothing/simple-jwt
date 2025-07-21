@@ -23,8 +23,8 @@ type AuthService interface {
 }
 
 type AuthRepo interface {
-	ReviveKeys(ctx context.Context) ([3]string, error)
-	StoreKeys(ctx context.Context, keys [3]string) error
+	ReviveKeys(ctx context.Context) ([]string, error)
+	StoreKeys(ctx context.Context, keys []string) error
 
 	PutRefresh(ctx context.Context, uuid string, oldRefresh, newRefresh schema.RefreshToken, userAgent, IP string) (bool, error)
 	FindRefresh(ctx context.Context, uuid string, refresh schema.RefreshToken) (bool, error)
@@ -39,9 +39,9 @@ type ServiceImpl struct {
 	webhook  webhook.WebhookService
 }
 
-func NewService(cfg config.AuthConfig, repo AuthRepo, webhook webhook.WebhookService, l *zap.Logger) (AuthService, error) {
+func NewService(cfg *config.AuthConfig, repo AuthRepo, webhook webhook.WebhookService, l *zap.Logger) (AuthService, error) {
 	keys, err := repo.ReviveKeys(context.Background())
-	if err == nil {
+	if err == nil && keys != nil {
 		if cfg.AccessKey == "" {
 			cfg.AccessKey = keys[0]
 		}
@@ -51,8 +51,18 @@ func NewService(cfg config.AuthConfig, repo AuthRepo, webhook webhook.WebhookSer
 		if cfg.RefreshHashKey == "" {
 			cfg.RefreshHashKey = keys[2]
 		}
+	} else {
+		if cfg.AccessKey == "" {
+			cfg.AccessKey = jwt.GenerateKey()
+		}
+		if cfg.RefreshKey == "" {
+			cfg.RefreshKey = jwt.GenerateKey()
+		}
+		if cfg.RefreshHashKey == "" {
+			cfg.RefreshHashKey = jwt.GenerateKey()
+		}
 	}
-	err = repo.StoreKeys(context.Background(), [3]string{cfg.AccessKey, cfg.RefreshKey, cfg.RefreshHashKey})
+	err = repo.StoreKeys(context.Background(), []string{cfg.AccessKey, cfg.RefreshKey, cfg.RefreshHashKey})
 	if err != nil {
 		return nil, fmt.Errorf("can't store keys in database: %w", err)
 	}

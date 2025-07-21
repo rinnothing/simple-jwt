@@ -1,5 +1,9 @@
 package jwt
 
+import (
+	"crypto/rand"
+)
+
 type Tool struct {
 	accessKey      string
 	refreshKey     string
@@ -48,4 +52,10 @@ func (t *Tool) CheckAccess(access AccessToken) bool {
 // remember: the refresh key could be already used, the method only checks for access and refresh tokens compatibility
 func (t *Tool) ChechRefresh(access AccessToken, refresh RefreshToken) bool {
 	return refresh.Validate(access, t.refreshKey, t.refreshHashKey)
+}
+
+func GenerateKey() string {
+	key := make([]byte, 64)
+	rand.Read(key)
+	return string(key)
 }

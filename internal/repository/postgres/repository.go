@@ -19,8 +19,8 @@ var (
 )
 
 type PostgresService interface {
-	ReviveKeys(ctx context.Context) ([3]string, error)
-	StoreKeys(ctx context.Context, keys [3]string) error
+	ReviveKeys(ctx context.Context) ([]string, error)
+	StoreKeys(ctx context.Context, keys []string) error
 
 	PutRefresh(ctx context.Context, uuid string, oldRefresh, newRefresh schema.RefreshToken, userAgent, IP string) (bool, error)
 	Remove(ctx context.Context, uuid string) error
@@ -161,10 +161,33 @@ WHERE uuid = $1
 	return nil
 }
 
-func (p *PostgresServiceImpl) ReviveKeys(ctx context.Context) ([3]string, error) {
-	panic("unimplemented")
+func (p *PostgresServiceImpl) ReviveKeys(ctx context.Context) ([]string, error) {
+	query := `
+SELECT access_key, refresh_key, refresh_hash_key
+FROM keys
+`
+	keys := make([]string, 3)
+	err := p.pool.QueryRow(ctx, query).Scan(&keys[0], &keys[1], &keys[2])
+	if err != nil {
+		return nil, fmt.Errorf("can't revive keys: %w", err)
+	}
+
+	return keys, nil
 }
 
-func (p *PostgresServiceImpl) StoreKeys(ctx context.Context, keys [3]string) error {
-	panic("unimplemented")
+func (p *PostgresServiceImpl) StoreKeys(ctx context.Context, keys []string) error {
+	if len(keys) < 3 {
+		return fmt.Errorf("not enough keys to store, want 3 but has %d", len(keys))
+	}
+
+	query := `
+UPDATE keys
+SET access_key = $1, refresh_key = $2, refresh_hash_key = $3
+`
+	_, err := p.pool.Exec(ctx, query, keys[0], keys[1], keys[2])
+	if err != nil {
+		fmt.Errorf("can't store keys: %w", err)
+	}
+
+	return nil
 }
