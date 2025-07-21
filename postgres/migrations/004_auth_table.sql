@@ -2,7 +2,7 @@
 CREATE TABLE auth
 (
     id UUID PRIMARY KEY REFERENCES storage(id) ON DELETE CASCADE,
-    refresh_hash BINARY(60) NOT NULL,
+    refresh_hash VARCHAR(60) NOT NULL,
     user_agent TEXT NOT NULL,
     ip TEXT NOT NULL
 );
