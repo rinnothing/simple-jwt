@@ -98,7 +98,7 @@ func (s *ServiceImpl) HasAccess(ctx context.Context, token schema.AccessToken) (
 	refresh := s.authTool.AccessToRefresh(jwt.AccessToken(token))
 	found, err := s.repo.FindRefresh(ctx, payload.UUID, schema.RefreshToken(refresh))
 	if err != nil {
-		return false, fmt.Errorf("can't check if access token has expired", err)
+		return false, fmt.Errorf("can't check if access token has expired: %w", err)
 	}
 
 	return found, nil
@@ -124,6 +124,10 @@ func (s *ServiceImpl) RefreshTokens(ctx context.Context, pair schema.TokenPair, 
 	payload, err := jwt.AccessToken(*pair.AccessToken).GetPayload()
 	if err != nil {
 		return schema.TokenPair{}, fmt.Errorf("can't get uuid from access token: %w", err)
+	}
+
+	if !s.authTool.CheckRefresh(jwt.AccessToken(*pair.AccessToken), jwt.RefreshToken(*pair.RefreshToken)) {
+		return schema.TokenPair{}, fmt.Errorf("access and refresh tokens don't work together")
 	}
 
 	access, refresh := s.authTool.IssueTokens(payload.UUID)

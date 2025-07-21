@@ -5,3 +5,11 @@ codegen:
 	go tool oapi-codegen -package=schema -generate=server -o=internal/api/schema/server.gen.go api/openapi.yaml
 	go tool oapi-codegen -package=schema -generate=types -o=internal/api/schema/types.gen.go api/openapi.yaml
 	go mod tidy
+
+.PHONY: generate-key
+generate-key:
+	go run cmd/generate_key/main.go
+
+.PHONY: test
+test:
+	go test ./...

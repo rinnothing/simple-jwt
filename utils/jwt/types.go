@@ -38,13 +38,12 @@ func (p PreAccessToken) Encode(key string) AccessToken {
 	}
 
 	unsigned := fmt.Sprintf("%s.%s",
-		base64.URLEncoding.EncodeToString(headerJSON),
-		base64.URLEncoding.EncodeToString(payloadJSON),
+		base64.RawURLEncoding.EncodeToString(headerJSON),
+		base64.RawURLEncoding.EncodeToString(payloadJSON),
 	)
 
-	signature := hmac.New(sha512.New, []byte(key)).Sum([]byte(unsigned))
-
-	return AccessToken(fmt.Sprintf("%s.%s", unsigned, base64.URLEncoding.EncodeToString(signature)))
+	signature := doHmac(key, unsigned)
+	return AccessToken(fmt.Sprintf("%s.%s", unsigned, base64.RawURLEncoding.EncodeToString(signature)))
 }
 
 type AccessToken string
@@ -57,7 +56,7 @@ func (a AccessToken) Validate(key string) bool {
 	signature := strings.Split(string(a), ".")[2]
 	body := a[:len(a)-len(signature)-1]
 
-	expectedSignature := base64.URLEncoding.EncodeToString(hmac.New(sha512.New, []byte(key)).Sum([]byte(body)))
+	expectedSignature := base64.RawURLEncoding.EncodeToString(doHmac(key, string(body)))
 	return expectedSignature == signature
 }
 
@@ -68,7 +67,7 @@ func (a AccessToken) GetPayload() (*Payload, error) {
 	}
 	middle := parts[1]
 
-	decoded, err := base64.URLEncoding.DecodeString(middle)
+	decoded, err := base64.RawURLEncoding.DecodeString(middle)
 	if err != nil {
 		return nil, fmt.Errorf("middle isn't in base64url: %w", err)
 	}
@@ -89,9 +88,9 @@ type PreRefreshToken struct {
 }
 
 func (p PreRefreshToken) Encode(refreshKey, refreshHashKey string) RefreshToken {
-	unsigned := base64.URLEncoding.EncodeToString(hmac.New(sha512.New, []byte(refreshKey)).Sum([]byte(p.Access)))
+	unsigned := base64.RawURLEncoding.EncodeToString(doHmac(refreshKey, string(p.Access)))
 
-	signature := base64.URLEncoding.EncodeToString(hmac.New(sha512.New, []byte(refreshHashKey)).Sum([]byte(unsigned)))
+	signature := base64.RawURLEncoding.EncodeToString(doHmac(refreshHashKey, string(unsigned)))
 
 	return RefreshToken(base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s.%s", unsigned, signature))))
 }
@@ -102,4 +101,10 @@ func (r RefreshToken) Validate(access AccessToken, refreshKey, refreshHashKey st
 	repeatRefresh := PreRefreshToken{Access: access}.Encode(refreshKey, refreshHashKey)
 
 	return r == repeatRefresh
+}
+
+func doHmac(key string, data string) []byte {
+	hash := hmac.New(sha512.New, []byte(key))
+	hash.Write([]byte(data))
+	return hash.Sum(nil)
 }
