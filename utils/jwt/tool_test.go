@@ -1,6 +1,7 @@
 package jwt_test
 
 import (
+	"math/rand"
 	"testing"
 
 	"github.com/rinnothing/simple-jwt/utils/jwt"
@@ -29,4 +30,18 @@ func TestJWT(t *testing.T) {
 	require.True(t, tool.CheckAccess(access))
 	require.True(t, tool.CheckRefresh(access, refresh))
 	require.Equal(t, tool.AccessToRefresh(access), refresh)
+
+	refresh = jwt.RefreshToken(brakeOneChar(string(refresh)))
+	require.False(t, refresh.Validate(access, string(refreshKey), string(refreshHashKey)))
+
+	access = jwt.AccessToken(brakeOneChar(string(access)))
+	require.False(t, access.Validate(accessKey))
+}
+
+func brakeOneChar(s string) string {
+	n := rand.Int() % len(s)
+	accessBytes := []byte(s)
+	accessBytes[n] = 255 - accessBytes[n]
+
+	return string(accessBytes)
 }
