@@ -5,6 +5,7 @@ import (
 )
 
 type Tool struct {
+	RandomString   string
 	accessKey      string
 	refreshKey     string
 	refreshHashKey string
@@ -25,7 +26,8 @@ func (t *Tool) IssueTokens(uuid string) (AccessToken, RefreshToken) {
 			Type:      "JWT",
 		},
 		Payload: Payload{
-			UUID: uuid,
+			UUID:        uuid,
+			RandomValue: t.RandomString,
 		},
 	}
 	access := preAccess.Encode(t.accessKey)

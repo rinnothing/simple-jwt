@@ -1,6 +1,6 @@
 module github.com/rinnothing/simple-jwt
 
-go 1.24.3
+go 1.24.5
 
 tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen
 

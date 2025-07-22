@@ -3,16 +3,17 @@ package postgres
 import (
 	"context"
 	"crypto/sha512"
+	"encoding/hex"
 	"errors"
 	"fmt"
 
 	"github.com/rinnothing/simple-jwt/internal/api/schema"
 	"github.com/rinnothing/simple-jwt/internal/config"
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -237,16 +238,28 @@ WHERE id = $1
 }
 
 func (p *PostgresServiceImpl) ReviveKeys(ctx context.Context) ([]string, error) {
-	// TODO: fix wrong keys retrieval
 	query := `
-SELECT access_key, refresh_key, refresh_hash_key
+SELECT encode(access_key, 'hex'), encode(refresh_key, 'hex'), encode(refresh_hash_key, 'hex')
 FROM keys
+ORDER BY created_at DESC
+LIMIT 1
 `
 	keys := make([]string, 3)
-	err := p.pool.QueryRow(ctx, query).Scan(&keys[0], &keys[1], &keys[2])
+	hexKeys := make([]string, 3)
+	err := p.pool.QueryRow(ctx, query).Scan(&hexKeys[0], &hexKeys[1], &hexKeys[2])
 	if err != nil {
 		return nil, fmt.Errorf("can't revive keys: %w", err)
 	}
+
+	for i, encKey := range hexKeys {
+		key, err := hex.DecodeString(encKey)
+		if err != nil {
+			return nil, fmt.Errorf("can't decode key: %w", err)
+		}
+		keys[i] = string(key)
+	}
+
+	p.l.Debug("revived keys", zap.Strings("keys", keys))
 
 	return keys, nil
 }
@@ -256,12 +269,18 @@ func (p *PostgresServiceImpl) StoreKeys(ctx context.Context, keys []string) erro
 		return fmt.Errorf("not enough keys to store, want 3 but has %d", len(keys))
 	}
 
-	// TODO: fix wrong keys store
+	p.l.Debug("storing keys", zap.Strings("keys", keys))
+
+	hexVals := make([]string, 3)
+	for i, key := range keys {
+		hexVals[i] = hex.EncodeToString([]byte(key))
+	}
+
 	query := `
-UPDATE keys
-SET access_key = $1, refresh_key = $2, refresh_hash_key = $3
+INSERT INTO keys (access_key, refresh_key, refresh_hash_key)
+VALUES (decode($1, 'hex'), decode($2, 'hex'), decode($3, 'hex'))
 `
-	_, err := p.pool.Exec(ctx, query, keys[0], keys[1], keys[2])
+	_, err := p.pool.Exec(ctx, query, hexVals[0], hexVals[1], hexVals[2])
 	if err != nil {
 		fmt.Errorf("can't store keys: %w", err)
 	}

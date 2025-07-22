@@ -16,6 +16,9 @@ test:
 
 .PHONY: migrate
 migrate:
+	docker-compose down
+	docker volume rm simple-jwt_postgres_data 
+
 	docker-compose build
 	docker-compose up -d db
 	go run cmd/migrate/main.go

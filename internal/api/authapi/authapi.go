@@ -46,7 +46,6 @@ func (a *APIImpl) AuthorizeGUID(e echo.Context, guid string) error {
 		return InternalError(e)
 	}
 
-	// TODO: don't forget to set e.IPExtractor to echo.ExtractIPDirect()
 	pair, err := a.auth.IssueTokens(ctx, string(uuid), e.Request().UserAgent(), e.RealIP())
 	if err != nil {
 		a.logger.Error("can't issue tokens", zap.Error(err))
@@ -97,7 +96,6 @@ func (a *APIImpl) RefreshTokens(e echo.Context) error {
 		return err
 	}
 
-	// TODO: don't forget to set e.IPExtractor to echo.ExtractIPDirect()
 	newPair, err := a.auth.RefreshTokens(ctx, pair, e.Request().UserAgent(), e.RealIP())
 	if errors.Is(err, postgres.ErrWrongUserAgent) {
 		a.logger.Info("refresh token denied", zap.String("access_token", string(*pair.AccessToken)),

@@ -142,8 +142,6 @@ func (s *ServiceImpl) RefreshTokens(ctx context.Context, pair schema.TokenPair, 
 
 	if updated {
 		err = s.webhook.CallWebhook(ip)
-
-		// TODO: think do you really need to tell user about this or just proceed if doesn't work
 		if err != nil {
 			return schema.TokenPair{}, fmt.Errorf("can't call webhook on IP update: %w", err)
 		}

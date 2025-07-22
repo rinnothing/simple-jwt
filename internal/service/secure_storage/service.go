@@ -32,11 +32,9 @@ func NewService(repo StorageRepo, l *zap.Logger) StorageService {
 }
 
 func (s *StorageServiceImpl) GetGUID(ctx context.Context, uuid string) (schema.GUID, error) {
-	// TODO: add logging
 	return s.repo.GetGUID(ctx, uuid)
 }
 
 func (s *StorageServiceImpl) PutGUID(ctx context.Context, guid schema.GUID) (string, error) {
-	// TODO: add logging
 	return s.repo.PutGUID(ctx, guid)
 }
