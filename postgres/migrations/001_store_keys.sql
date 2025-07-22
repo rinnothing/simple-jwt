@@ -1,9 +1,9 @@
 -- +goose Up
 CREATE TABLE keys 
 (
-    access_key VARCHAR(64) NOT NULL,
-    refresh_key VARCHAR(64) NOT NULL,
-    refresh_hash_key VARCHAR(64) NOT NULL
+    access_key BYTEA NOT NULL,
+    refresh_key BYTEA NOT NULL,
+    refresh_hash_key BYTEA NOT NULL
 );
 
 -- +goose Down

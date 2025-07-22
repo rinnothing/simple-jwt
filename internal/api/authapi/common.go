@@ -8,13 +8,13 @@ import (
 )
 
 func InternalError(e echo.Context) error {
-	return e.String(http.StatusInternalServerError, "internal error")
+	return e.String(http.StatusInternalServerError, "internal error\n")
 }
 
 func Unauthorized(e echo.Context) error {
-	return e.String(http.StatusUnauthorized, "unauthorized")
+	return e.String(http.StatusUnauthorized, "unauthorized\n")
 }
 
 func BadRequest(e echo.Context, reason string) error {
-	return e.String(http.StatusBadRequest, fmt.Sprintf("bad request, reason: %s", reason))
+	return e.String(http.StatusBadRequest, fmt.Sprintf("bad request, reason: %s\n", reason))
 }

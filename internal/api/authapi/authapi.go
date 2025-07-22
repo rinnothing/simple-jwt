@@ -60,8 +60,8 @@ func (a *APIImpl) GetGUID(e echo.Context, params schema.GetGUIDParams) error {
 	ctx := e.Request().Context()
 	a.logRequest(e, "get_guid", zap.String("access_token", params.AccessToken))
 
-	err := a.tryAuthorize(e, params.AccessToken)
-	if err != nil {
+	authorized, err := a.tryAuthorize(e, params.AccessToken)
+	if !authorized {
 		return err
 	}
 
@@ -92,8 +92,8 @@ func (a *APIImpl) RefreshTokens(e echo.Context) error {
 
 	a.logRequest(e, "refresh", zap.String("access_token", *pair.AccessToken), zap.String("refresh_token", *pair.RefreshToken))
 
-	err = a.tryAuthorize(e, *pair.AccessToken)
-	if err != nil {
+	authorized, err := a.tryAuthorize(e, *pair.AccessToken)
+	if !authorized {
 		return err
 	}
 
@@ -117,8 +117,8 @@ func (a *APIImpl) Unauthorize(e echo.Context, params schema.UnauthorizeParams) e
 
 	a.logRequest(e, "unauthorize", zap.String("access_token", params.AccessToken))
 
-	err := a.tryAuthorize(e, params.AccessToken)
-	if err != nil {
+	authorized, err := a.tryAuthorize(e, params.AccessToken)
+	if !authorized {
 		return err
 	}
 
@@ -131,17 +131,17 @@ func (a *APIImpl) Unauthorize(e echo.Context, params schema.UnauthorizeParams) e
 	return e.NoContent(http.StatusOK)
 }
 
-func (a *APIImpl) tryAuthorize(e echo.Context, token schema.AccessToken) error {
+func (a *APIImpl) tryAuthorize(e echo.Context, token schema.AccessToken) (bool, error) {
 	allow, err := a.auth.HasAccess(e.Request().Context(), token)
 	if err != nil {
 		a.logger.Error("can't check access", zap.Error(err))
-		return InternalError(e)
+		return false, InternalError(e)
 	}
 	if !allow {
 		a.logger.Info("access denied", zap.String("access_token", string(token)))
-		return e.NoContent(http.StatusUnauthorized)
+		return false, Unauthorized(e)
 	}
-	return nil
+	return true, nil
 }
 
 func (a *APIImpl) logRequest(e echo.Context, name string, fields ...zap.Field) {

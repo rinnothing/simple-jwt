@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/json"
@@ -16,7 +17,8 @@ type Header struct {
 }
 
 type Payload struct {
-	UUID string `json:"uuid"`
+	RandomValue string `json:"random_value"`
+	UUID        string `json:"uuid"`
 }
 
 type Signature string
@@ -27,6 +29,12 @@ type PreAccessToken struct {
 }
 
 func (p PreAccessToken) Encode(key string) AccessToken {
+	if p.Payload.RandomValue == "" {
+		val := make([]byte, 64)
+		rand.Read(val)
+		p.Payload.RandomValue = string(val)
+	}
+
 	headerJSON, err := json.Marshal(p.Header)
 	if err != nil {
 		panic(err)

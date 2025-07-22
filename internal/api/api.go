@@ -74,7 +74,7 @@ func Run(cfg config.Config, logger *zap.Logger) error {
 	schema.RegisterHandlers(e, serviceAPI)
 
 	go func() {
-		if err := e.StartAutoTLS(net.JoinHostPort("0.0.0.0", cfg.Port)); !errors.Is(err, http.ErrServerClosed) {
+		if err := e.Start(net.JoinHostPort("0.0.0.0", cfg.Port)); !errors.Is(err, http.ErrServerClosed) {
 			logger.Fatal("server died", zap.Error(err))
 		}
 	}()
