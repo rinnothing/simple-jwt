@@ -5,3 +5,9 @@ postgres:
   user: security_master
   password: 12345
   max_conn: 15
+logger:
+  env: dev
+  output_paths:
+    - stdout
+    - log/server.log
+    

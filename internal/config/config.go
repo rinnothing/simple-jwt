@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/caarlos0/env"
 	"gopkg.in/yaml.v2"
 )
 
@@ -12,6 +11,7 @@ type Config struct {
 	Auth     AuthConfig     `yaml:"auth"`
 	Postgres PostgresConfig `yaml:"postgres"`
 	Webhook  WebhookConfig  `yaml:"webhook"`
+	Logger   LoggerConfig   `yaml:"logger"`
 }
 
 func GetConfig() (Config, error) {
@@ -27,11 +27,6 @@ func GetConfig() (Config, error) {
 	err = d.Decode(&config)
 	if err != nil {
 		return Config{}, fmt.Errorf("can't unmarshal config file: %w", err)
-	}
-
-	err = env.Parse(&config)
-	if err != nil {
-		return Config{}, fmt.Errorf("can't parse env variables: %w", err)
 	}
 
 	config.Postgres.MakeURL()

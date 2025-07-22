@@ -21,9 +21,13 @@ func main() {
 		panic(err)
 	}
 
-	// TODO: maybe start zap
-	// TODO: need to read options from config
-	logger, err := zap.NewDevelopment()
+	loggerCfg, err := config.ConfigureLogger(cfg.Logger)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "can't read logger configuration: %s", err.Error())
+		panic(err)
+	}
+
+	logger, err := loggerCfg.Build()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "can't start logger: %s", err.Error())
 		panic(err)
@@ -38,6 +42,8 @@ func main() {
 		panic(err)
 	}
 	defer dbPool.Close()
+
+	logger.Info("start migrations")
 
 	postgres.SetupPostgres(dbPool, logger)
 

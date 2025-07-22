@@ -4,12 +4,12 @@ import "fmt"
 
 type PostgresConfig struct {
 	URL      string
-	Host     string `yaml:"host" env:"POSTGRES_HOST"`
-	Port     string `yaml:"port" env:"POSTGRES_PORT"`
-	DB       string `yaml:"database" env:"POSTGRES_DATABASE"`
-	User     string `yaml:"user" env:"POSTGRES_USER"`
-	Password string `yaml:"password" env:"POSTGRES_PASSWORD"`
-	MaxConn  string `yaml:"max_conn" env:"POSTGRES_MAX_CONN"`
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	DB       string `yaml:"database"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	MaxConn  string `yaml:"max_conn"`
 }
 
 func (c *PostgresConfig) MakeURL() {
