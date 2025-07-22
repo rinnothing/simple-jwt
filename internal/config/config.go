@@ -12,6 +12,7 @@ type Config struct {
 	Postgres PostgresConfig `yaml:"postgres"`
 	Webhook  WebhookConfig  `yaml:"webhook"`
 	Logger   LoggerConfig   `yaml:"logger"`
+	Port     string         `yaml:"port"`
 }
 
 func GetConfig() (Config, error) {

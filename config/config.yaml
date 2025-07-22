@@ -10,4 +10,7 @@ logger:
   output_paths:
     - stdout
     - log/server.log
-    
+  echo_outputs:
+    - stdout
+    - log/echo.log
+port: 443

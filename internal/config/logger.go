@@ -11,6 +11,7 @@ import (
 type LoggerConfig struct {
 	Env         string   `yaml:"env"`
 	OutputPaths []string `yaml:"output_paths,omitempty"`
+	EchoOutputs []string `yaml:"echo_outputs,omitempty"`
 }
 
 func ConfigureLogger(cfg LoggerConfig) (zap.Config, error) {
@@ -28,17 +29,34 @@ func ConfigureLogger(cfg LoggerConfig) (zap.Config, error) {
 		config.OutputPaths = cfg.OutputPaths
 	}
 	for _, path := range config.OutputPaths {
-		if path != "stdout" && path != "stderr" {
-			err := os.MkdirAll(filepath.Dir(path), 0777)
-			if err != nil {
-				return zap.Config{}, fmt.Errorf("can't create dirs: %w", err)
-			}
-			_, err = os.Create(path)
-			if err != nil {
-				return zap.Config{}, fmt.Errorf("can't create log file: %w", err)
-			}
+		err := tryCreateOut(path)
+		if err != nil {
+			return zap.Config{}, err
+		}
+	}
+	for _, path := range cfg.EchoOutputs {
+		err := tryCreateOut(path)
+		if err != nil {
+			return zap.Config{}, err
 		}
 	}
 
 	return config, nil
+}
+
+func tryCreateOut(path string) error {
+	if path == "stdout" || path == "stderr" {
+		return nil
+	}
+
+	err := os.MkdirAll(filepath.Dir(path), 0777)
+	if err != nil {
+		return fmt.Errorf("can't create dirs: %w", err)
+	}
+	_, err = os.Create(path)
+	if err != nil {
+		return fmt.Errorf("can't create log file: %w", err)
+	}
+
+	return nil
 }
