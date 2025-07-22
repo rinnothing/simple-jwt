@@ -7,8 +7,9 @@ services:
       - postgres_data:/var/lib/postgresql/data
     env_file:
       - .env
-    ports:
-      - 5433:5432
+    # uncomment to test migration
+    # ports:
+    #   - 5432:5432 
 
   server:
     depends_on:
@@ -18,13 +19,8 @@ services:
       dockerfile: Dockerfile
     env_file:
       - .env
-
-#TODO: don't forget to remove this (only use for debug) 
-  adminer:
-    image: adminer
-    restart: always
     ports:
-      - 8080:8080
+      - ${SERVER_PORT}:8080
 
 volumes:
   postgres_data:

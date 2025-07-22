@@ -203,7 +203,9 @@ WHERE id = $1
 `
 	var retrievedHash []byte
 	err := p.pool.QueryRow(ctx, query, uuid).Scan(&retrievedHash)
-	if err != nil {
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	} else if err != nil {
 		return false, fmt.Errorf("can't find refresh_hash for uuid %s: %w", uuid, err)
 	}
 

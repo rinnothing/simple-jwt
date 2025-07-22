@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	cfg, err := config.GetConfig()
+	cfg, err := config.GetConfig("config/config.yaml")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "can't read config: %s", err.Error())
 		panic(err)

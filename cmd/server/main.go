@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	cfg, err := config.GetConfig()
+	cfg, err := config.GetConfig("config/config.yaml")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "can't read config: %s", err.Error())
 		panic(err)
@@ -28,7 +28,8 @@ func main() {
 		panic(err)
 	}
 
-	if err := api.Run(cfg, logger); err != nil {
+	server := api.Server{}
+	if err := server.Run(cfg, logger); err != nil {
 		logger.Fatal("server stopped with error", zap.Error(err))
 	}
 }

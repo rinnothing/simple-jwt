@@ -89,8 +89,6 @@ func (a AccessToken) GetPayload() (*Payload, error) {
 	return &payload, nil
 }
 
-// TODO: dont't forget to explain reasons on your hash token
-
 type PreRefreshToken struct {
 	Access AccessToken
 }

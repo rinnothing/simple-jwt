@@ -15,8 +15,8 @@ type Config struct {
 	Port     string         `yaml:"port"`
 }
 
-func GetConfig() (Config, error) {
-	file, err := os.Open("config/config.yaml")
+func GetConfig(path string) (Config, error) {
+	file, err := os.Open(path)
 	if err != nil {
 		return Config{}, fmt.Errorf("can't open config file: %w", err)
 	}

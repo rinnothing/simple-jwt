@@ -1,16 +1,22 @@
 postgres:
-  host: localhost
-  port: 5433
+  host: db
+  port: 5432
   database: security_db
   user: security_master
   password: 12345
   max_conn: 15
+webhook:
+  http_address: http://google.com
+  retry_count: 5
 logger:
-  env: dev
+  env: prod
   output_paths:
     - stdout
     - log/server.log
   echo_outputs:
     - stdout
     - log/echo.log
-port: 443
+  integration_outputs:
+    - stdout
+    - log/integration.log
+port: 8080

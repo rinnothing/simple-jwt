@@ -4,6 +4,7 @@ codegen:
 	
 	go tool oapi-codegen -package=schema -generate=server -o=internal/api/schema/server.gen.go api/openapi.yaml
 	go tool oapi-codegen -package=schema -generate=types -o=internal/api/schema/types.gen.go api/openapi.yaml
+	go tool oapi-codegen -package=schema -generate=client -o=internal/api/schema/client.gen.go api/openapi.yaml
 	go mod tidy
 
 .PHONY: generate-key
@@ -36,3 +37,8 @@ run: codegen
 .PHONY: stop
 stop:
 	docker-compose down
+
+.PHONY: integration
+integration:
+	docker-compose up -d db
+	go test ./... -tags integration 

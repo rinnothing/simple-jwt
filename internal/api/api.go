@@ -26,9 +26,15 @@ import (
 	migrations "github.com/rinnothing/simple-jwt/postgres"
 )
 
-func Run(cfg config.Config, logger *zap.Logger) error {
+type Server struct {
+	cancel context.CancelFunc
+}
+
+func (s *Server) Run(cfg config.Config, logger *zap.Logger) error {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
+
+	s.cancel = cancel
 
 	dbPool, err := pgxpool.New(ctx, cfg.Postgres.URL)
 	if err != nil {
@@ -91,6 +97,10 @@ func Run(cfg config.Config, logger *zap.Logger) error {
 
 	logger.Info("server stopped")
 	return nil
+}
+
+func (s *Server) Stop() {
+	s.cancel()
 }
 
 func openEchoOutputs(e *echo.Echo, cfg config.Config) ([]io.WriteCloser, []io.Writer, error) {
